@@ -2,7 +2,7 @@ import "./scss/index.scss";
 
 import * as React from "react";
 
-import { useSignIn } from "@saleor/sdk";
+import { useAuth } from "@saleor/sdk";
 import { demoMode } from "@temp/constants";
 import { maybe } from "@utils/misc";
 
@@ -13,26 +13,35 @@ interface ILoginForm {
 }
 
 const LoginForm: React.FC<ILoginForm> = ({ hide }) => {
-  const [signIn, { loading, error }] = useSignIn();
+  const { signIn } = useAuth();
+  const [loading, setLoading] = React.useState(false);
+  const [errors, setErrors] = React.useState(null);
 
   const handleOnSubmit = async (evt, { email, password }) => {
     evt.preventDefault();
-    const authenticated = await signIn({ email, password });
-    if (authenticated && hide) {
+    setLoading(true);
+    const { data, dataError } = await signIn(email, password);
+    setLoading(false);
+    if (dataError?.error) {
+      setErrors(dataError.error);
+    } else if (data && hide) {
+      setErrors(null);
       hide();
     }
   };
 
-  const formData = demoMode ? {
-    email: "admin@example.com",
-    password: "admin",
-  } : {}
+  const formData = demoMode
+    ? {
+        email: "admin@example.com",
+        password: "admin",
+      }
+    : {};
 
   return (
     <div className="login-form">
       <Form
-      data={formData}
-        errors={maybe(() => error.extraInfo.userInputErrors, [])}
+        data={formData}
+        errors={maybe(() => errors, [])}
         onSubmit={handleOnSubmit}
       >
         <TextField

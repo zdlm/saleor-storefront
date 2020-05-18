@@ -4,7 +4,7 @@ import * as React from "react";
 import { RouteComponentProps } from "react-router";
 
 import { Loader } from "@components/atoms";
-import { useOrderDetails, useUserDetails } from "@saleor/sdk";
+import { useAuth, useOrderDetails } from "@saleor/sdk";
 
 import Page from "./Page";
 
@@ -14,7 +14,7 @@ const View: React.FC<RouteComponentProps<{ token?: string }>> = ({
   },
 }) => {
   const { data: order, loading } = useOrderDetails({ token });
-  const { data: user } = useUserDetails();
+  const { user } = useAuth();
   const guest = !user;
 
   if (loading) {

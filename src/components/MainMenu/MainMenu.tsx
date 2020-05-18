@@ -5,7 +5,7 @@ import {
 } from "../../globalStyles/scss/variables.scss";
 import "./scss/index.scss";
 
-import { useCart, useSignOut, useUserDetails } from "@saleor/sdk";
+import { useAuth, useCart } from "@saleor/sdk";
 
 import Media from "react-media";
 import { Link } from "react-router-dom";
@@ -32,9 +32,10 @@ import searchImg from "../../images/search.svg";
 import userImg from "../../images/user.svg";
 
 const MainMenu: React.FC = () => {
-  const { data: user } = useUserDetails();
-  const [signOut] = useSignOut();
+  const { user, signOut } = useAuth();
   const { items } = useCart();
+
+  console.log(user);
 
   const handleSignOut = () => {
     signOut();

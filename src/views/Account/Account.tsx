@@ -2,7 +2,7 @@ import * as React from "react";
 import Media from "react-responsive";
 import { RouteComponentProps, withRouter } from "react-router";
 
-import { useUserDetails } from "@saleor/sdk";
+import { useAuth } from "@saleor/sdk";
 import { smallScreen } from "@styles/constants";
 import AddressBook from "../../account/AddressBook/AddressBook";
 
@@ -39,11 +39,11 @@ const returnTab: any = (path: string, userDetails, history) => {
 };
 
 const Account: React.FC<RouteComponentProps> = ({ history, match }) => {
-  const { data: user, loading } = useUserDetails();
+  const { user, loaded } = useAuth();
 
   const links = [accountUrl, orderHistoryUrl, addressBookUrl];
 
-  if (loading) {
+  if (!loaded) {
     return <Loader />;
   }
 
