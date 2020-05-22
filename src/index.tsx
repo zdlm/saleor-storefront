@@ -1,12 +1,18 @@
 import { Integrations as ApmIntegrations } from "@sentry/apm";
 import * as Sentry from "@sentry/browser";
-import { defaultDataIdFromObject, InMemoryCache } from "apollo-cache-inmemory";
+import {
+  defaultDataIdFromObject,
+  InMemoryCache,
+  NormalizedCacheObject,
+} from "apollo-cache-inmemory";
 import { persistCache } from "apollo-cache-persist";
+import { ApolloClient } from "apollo-client";
+import { ApolloLink } from "apollo-link";
 import * as React from "react";
 import { positions, Provider as AlertProvider, useAlert } from "react-alert";
 import { ApolloProvider } from "react-apollo";
 import { render } from "react-dom";
-import TagManager from 'react-gtm-module'
+import TagManager from "react-gtm-module";
 import { hot } from "react-hot-loader";
 import { Route, Router } from "react-router-dom";
 import { ThemeProvider } from "styled-components";
@@ -20,8 +26,6 @@ import {
 import {
   authLink,
   createSaleorClient,
-  fireSignOut,
-  invalidTokenLinkWithTokenHandler,
   SaleorProvider,
   useAuth,
 } from "@saleor/sdk";
@@ -47,8 +51,8 @@ const cache = new InMemoryCache({
   },
 });
 
-if (process.env.GTM_ID !== undefined){
-  TagManager.initialize({gtmId: process.env.GTM_ID})
+if (process.env.GTM_ID !== undefined) {
+  TagManager.initialize({ gtmId: process.env.GTM_ID });
 }
 
 const startApp = async () => {
@@ -68,29 +72,6 @@ const startApp = async () => {
   const notificationOptions = {
     position: positions.BOTTOM_RIGHT,
     timeout: 2500,
-  };
-
-  /**
-   * This is temporary adapter for queries and mutations not included in SDK to handle invalid token error for them.
-   * Note, that after all GraphQL queries and mutations will be replaced by SDK methods, this adapter is going to be removed.
-   */
-  const ApolloClientInvalidTokenLinkAdapter: React.FC<{
-    children: (apolloClient) => React.ReactElement;
-  }> = ({ children }) => {
-    const tokenExpirationCallback = () => {
-      fireSignOut(apolloClient);
-    };
-
-    const { link: invalidTokenLink } = invalidTokenLinkWithTokenHandler(
-      tokenExpirationCallback
-    );
-
-    const apolloClient = React.useMemo(
-      () => createSaleorClient(apiUrl, invalidTokenLink, authLink, cache),
-      []
-    );
-
-    return children(apolloClient);
   };
 
   const Root = hot(module)(() => {
@@ -150,23 +131,37 @@ const startApp = async () => {
       return null;
     };
 
+    const [apolloClient, setApolloClient] = React.useState<
+      ApolloClient<NormalizedCacheObject>
+    >();
+
+    const attachApolloClientToSaleor = (invalidTokenLink: ApolloLink) => {
+      const client = createSaleorClient(
+        apiUrl,
+        invalidTokenLink,
+        authLink,
+        cache
+      );
+      setApolloClient(client);
+
+      return client;
+    };
+
     return (
       <Router history={history}>
         <QueryParamProvider ReactRouterRoute={Route}>
-          <ApolloClientInvalidTokenLinkAdapter>
-            {apolloClient => (
+          <SaleorProvider attachApolloClient={attachApolloClientToSaleor}>
+            {apolloClient && (
               <ApolloProvider client={apolloClient}>
-                <SaleorProvider client={apolloClient}>
-                  <ShopProvider>
-                    <OverlayProvider>
-                      <App />
-                      <Notifications />
-                    </OverlayProvider>
-                  </ShopProvider>
-                </SaleorProvider>
+                <ShopProvider>
+                  <OverlayProvider>
+                    <App />
+                    <Notifications />
+                  </OverlayProvider>
+                </ShopProvider>
               </ApolloProvider>
             )}
-          </ApolloClientInvalidTokenLinkAdapter>
+          </SaleorProvider>
         </QueryParamProvider>
       </Router>
     );
