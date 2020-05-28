@@ -42,6 +42,62 @@ import {
 } from "./constants";
 import { history } from "./history";
 
+const Notifications: React.FC = () => {
+  const alert = useAlert();
+
+  const { updateAvailable } = React.useContext(ServiceWorkerContext);
+
+  React.useEffect(() => {
+    if (updateAvailable) {
+      alert.show(
+        {
+          actionText: "Refresh",
+          content:
+            "To update the application to the latest version, please refresh the page!",
+          title: "New version is available!",
+        },
+        {
+          onClose: () => {
+            location.reload();
+          },
+          timeout: 0,
+          type: "success",
+        }
+      );
+    }
+  }, [updateAvailable]);
+
+  const { loaded, authenticated } = useAuth();
+  const [signedIn, setSignedIn] = React.useState<boolean | undefined>(
+    undefined
+  );
+
+  React.useEffect(() => {
+    if (loaded && signedIn === undefined) {
+      setSignedIn(authenticated);
+    } else if (loaded) {
+      if (!signedIn && authenticated) {
+        alert.show(
+          {
+            title: "You are now logged in",
+          },
+          { type: "success" }
+        );
+      } else if (signedIn && !authenticated) {
+        alert.show(
+          {
+            title: "You are now logged out",
+          },
+          { type: "success" }
+        );
+      }
+      setSignedIn(authenticated);
+    }
+  }, [loaded, authenticated]);
+
+  return null;
+};
+
 const cache = new InMemoryCache({
   dataIdFromObject: obj => {
     if (obj.__typename === "Shop") {
@@ -75,62 +131,6 @@ const startApp = async () => {
   };
 
   const Root = hot(module)(() => {
-    const Notifications = () => {
-      const alert = useAlert();
-
-      const { updateAvailable } = React.useContext(ServiceWorkerContext);
-
-      React.useEffect(() => {
-        if (updateAvailable) {
-          alert.show(
-            {
-              actionText: "Refresh",
-              content:
-                "To update the application to the latest version, please refresh the page!",
-              title: "New version is available!",
-            },
-            {
-              onClose: () => {
-                location.reload();
-              },
-              timeout: 0,
-              type: "success",
-            }
-          );
-        }
-      }, [updateAvailable]);
-
-      const { authenticated } = useAuth();
-      const [prevAuthenticated, setPrevAuthenticated] = React.useState<
-        boolean | undefined
-      >();
-
-      React.useEffect(() => {
-        if (prevAuthenticated !== undefined && authenticated !== undefined) {
-          if (!prevAuthenticated && authenticated) {
-            alert.show(
-              {
-                title: "You are now logged in",
-              },
-              { type: "success" }
-            );
-          } else if (prevAuthenticated && !authenticated) {
-            alert.show(
-              {
-                title: "You are now logged out",
-              },
-              { type: "success" }
-            );
-          }
-          setPrevAuthenticated(authenticated);
-        } else if (authenticated !== undefined) {
-          setPrevAuthenticated(authenticated);
-        }
-      }, [authenticated]);
-
-      return null;
-    };
-
     const [apolloClient, setApolloClient] = React.useState<
       ApolloClient<NormalizedCacheObject>
     >();
