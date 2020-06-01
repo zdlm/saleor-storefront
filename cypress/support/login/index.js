@@ -24,9 +24,8 @@ Cypress.Commands.add("loginUser", (email, password) => {
     .type(password)
     .get("[data-cy=submitLoginFormButton]")
     .click()
-    .get("[data-cy=alert]", { timeoout: 5000 })
-    .should("contain", "You are now logged in", { timeoout: 20000 })
-    .wait(3000);
+    .get("[data-cy=alert]", { timeoout: 3000 })
+    .should("contain", "You are now logged in", { timeoout: 20000 });
 });
 
 Cypress.Commands.add("logoutUser", () =>
@@ -35,6 +34,6 @@ Cypress.Commands.add("logoutUser", () =>
     .click()
     .get("[data-cy=desktopMenuLogoutLink]")
     .click()
-    .get("[data-cy=alert]", { timeoout: 5000 })
+    .get("[data-cy=alert]", { timeoout: 3000 })
     .should("contain", "You are now logged out", { timeoout: 20000 })
 );

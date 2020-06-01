@@ -12,7 +12,6 @@ describe("User orders histoy", () => {
   });
 
   beforeEach(() => {
-
     cy.server();
     cy.route("POST", `${Cypress.env("API_URI")}`).as("graphqlQuery");
 
@@ -26,19 +25,16 @@ describe("User orders histoy", () => {
       },
     });
 
-    cy.fixture('valid_user.json').then(
-      (validUser)=>{
-        user=validUser; 
-        cy.loginUser(user.email, user.password);
-      });
-
-    cy.visit("/order-history/");
-
+    cy.fixture("valid_user.json").then(validUser => {
+      user = validUser;
+      cy.loginUser(user.email, user.password).wait(3000);
     });
 
+    cy.visit("/order-history/");
+  });
+
   it("if user is logged in, when accessing order history and clicking load more button 10 orders should be visible", () => {
-    cy
-      .get(".account__content", {timeout:15000})
+    cy.get(".account__content", { timeout: 15000 })
       .find("[data-cy=order__row]")
       .should("have.length", 5)
       .get("[data-cy=loadMoreOrdersButton]")
@@ -49,13 +45,12 @@ describe("User orders histoy", () => {
   });
 
   it("if user is logged in, when accessing order history and clicking on order should move user to order view", () => {
-    cy
-      .get("[data-cy=order__row]:first", {timeout:15000})    
-      .click();
-    
-      cy.location().should((loc) => {
-        expect(loc.pathname).to.match(/^\/order-history\/[\w]+-[\w]+-[\w]+-[\w]+-[\w]+/);
-      })
-  
+    cy.get("[data-cy=order__row]:first", { timeout: 15000 }).click();
+
+    cy.location().should(loc => {
+      expect(loc.pathname).to.match(
+        /^\/order-history\/[\w]+-[\w]+-[\w]+-[\w]+-[\w]+/
+      );
+    });
   });
 });

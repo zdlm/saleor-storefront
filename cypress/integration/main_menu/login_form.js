@@ -34,9 +34,7 @@ describe("User login, logout and registration", () => {
 
   describe("Login", () => {
     it("should successfully log in an user", () => {
-      cy.loginUser("admin@example.com", "admin")
-        .get("[data-cy=alert]", { timeoout: 5000 })
-        .should("contain", "You are now logged in");
+      cy.loginUser("admin@example.com", "admin");
     });
 
     it("should display an error if user does not exist", () => {
@@ -56,10 +54,8 @@ describe("User login, logout and registration", () => {
   describe("Logout", () => {
     it("should successfully log out an user", () => {
       cy.loginUser("admin@example.com", "admin");
-      cy.wait(2000); // wait for reloading UI
-      cy.logoutUser()
-        .get("[data-cy=alert]", { timeoout: 5000 })
-        .should("contain", "You are now logged out");
+      cy.wait(3000); // wait for reloading UI
+      cy.logoutUser();
     });
   });
 });
