@@ -26,7 +26,7 @@ Cypress.Commands.add("loginUser", (email, password) => {
     .click()
     .get("[data-cy=alert]")
     .should("contain", "You are now logged in", { timeoout: 20000 })
-    .wait(2000);
+    .wait(3000);
 });
 
 Cypress.Commands.add("logoutUser", () =>
